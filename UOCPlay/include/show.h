@@ -105,7 +105,7 @@ tApiError seasonList_init(tSeasonList* list);
 tApiError episodeQueue_init(tEpisodeQueue* queue);
 
 // Add a show to the show list
-tApiError showList_add(tShowCatalog* list, tShow show);
+tApiError showList_add(tShowCatalog* catalog, tShow show);
 
 // Add a season to the season list
 tApiError seasonList_add(tSeasonList* list, tSeason season);
