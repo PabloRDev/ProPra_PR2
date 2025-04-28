@@ -225,7 +225,6 @@ tApiError showList_add(tShowCatalog *list, tShow show) {
     return E_SUCCESS;
 }
 
-
 // 1e - Add a new season at the beginning of the season list
 tApiError seasonList_add(tSeasonList *list, tSeason season) {
     assert(list != NULL);
@@ -268,7 +267,6 @@ tApiError episodeQueue_enqueue(tEpisodeQueue *queue, tEpisode episode) {
     return E_SUCCESS;
 }
 
-
 // Copy a show from src to dst
 tApiError show_cpy(tShow *dst, const tShow *src) {
     assert(dst != NULL);
@@ -295,7 +293,6 @@ tApiError show_cpy(tShow *dst, const tShow *src) {
 
     return E_SUCCESS;
 }
-
 
 // Copy a season from src to dst
 tApiError season_cpy(tSeason *dst, const tSeason *src) {
@@ -325,7 +322,6 @@ tApiError season_cpy(tSeason *dst, const tSeason *src) {
     return E_SUCCESS;
 }
 
-
 // Copy an episode from src to dst
 tApiError episode_cpy(tEpisode *dst, const tEpisode *src) {
     // Check preconditions
@@ -335,7 +331,6 @@ tApiError episode_cpy(tEpisode *dst, const tEpisode *src) {
     // Use episode_init to perform a deep copy of the episode
     return episode_init(dst, src->number, src->title, src->duration, src->rating);
 }
-
 
 // Find a show by its name
 tShow *showList_find(tShowCatalog list, const char *name) {
@@ -400,44 +395,98 @@ tApiError show_addEpisode(tShowCatalog *shows, const char *showName, int seasonN
 }
 
 
-// Calculate total duration of a season
+// 1g - Calculate total duration of a season
 tTime show_seasonTotalDuration(tShowCatalog shows, const char *showName, int seasonNumber) {
-    /////////////////////////////////
-    // PR2_1g
-    /////////////////////////////////
     tTime time;
     time_parse(&time, "00:00");
+
+    // Find show
+    const tShow *show = showList_find(shows, showName);
+    assert(show != NULL);
+    //Find season
+    const tSeason *season = seasonList_find(show->seasons, seasonNumber);
+    assert(season != NULL);
+
+    // Calculate duration looping through season episodes
+    const tEpisodeNode *epNode = season->episodes.first;
+    while (epNode != NULL) {
+        time.minutes += epNode->episode.duration.minutes;
+        time.hour += epNode->episode.duration.hour;
+        // Normalize time overflow 60
+        if (time.minutes >= 60) {
+            time.hour += time.minutes / 60;
+            time.minutes %= 60;
+        }
+
+        epNode = epNode->next;
+    }
 
     return time;
 }
 
-// Calculate average rating of episodes in a season
+// 1h - Calculate average rating of episodes in a season
 float show_seasonAverageRating(tShowCatalog shows, const char *showName, int seasonNumber) {
-    /////////////////////////////////
-    // Ex1 PR2 1h
-    /////////////////////////////////
+    assert(showName != NULL);
 
-    return 0.0f;
+    float rating = 0.0f;
+    int nEpisodes = 0;
+    // Check catalog
+    if (shows.first == NULL || shows.count == 0) {
+        return 0.0f;
+    }
+    const tShow *show = showList_find(shows, showName);
+    // Check show
+    if (show == NULL || show->seasons.first == NULL || show->seasons.count == 0) {
+        return 0.0f;
+    }
+    const tSeason *season = seasonList_find(show->seasons, seasonNumber);
+    // Check season
+    if (season == NULL) {
+        return 0.0f;
+    };
+
+    // Calculate season avg rating looping through episodes
+    tEpisodeNode *epNode = season->episodes.first;
+    while (epNode != NULL) {
+        nEpisodes++;
+        rating += epNode->episode.rating;
+
+        epNode = epNode->next;
+    }
+
+    if (nEpisodes == 0) {
+        return 0.0f;
+    }
+
+    const float seasonAvgRating = rating / (float) nEpisodes;
+
+    return seasonAvgRating;
 }
 
-// Return the number of total shows
+// 1j - Return the number of total shows
 int showsList_len(tShowCatalog shows) {
-    /////////////////////////////////
-    // PR2_1j
-    /////////////////////////////////
-
-    /////////////////////////////////
-    return -1;
+    return shows.count;
 }
 
-// Free the memory allocated for show list
+// 1i - Free the memory allocated for show list
 tApiError showList_free(tShowCatalog *list) {
-    /////////////////////////////////
-    // PR2_1i
-    /////////////////////////////////
+    if (list == NULL) {
+        return E_SUCCESS;
+    }
 
+    tShowNode *curr = list->first;
+    while (curr != NULL) {
+        tShowNode *next = curr->next;
+        // Free show node
+        free(curr);
 
-    return E_NOT_IMPLEMENTED;
+        curr = next;
+    }
+
+    list->first = NULL;
+    list->count = 0;
+
+    return E_SUCCESS;
 }
 
 // Free memory allocated for a single tShow (not the show list)
