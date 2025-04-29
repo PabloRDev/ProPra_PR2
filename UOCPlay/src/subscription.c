@@ -5,7 +5,7 @@
 #include "subscription.h"
 
 // Parse input from CSVEntry
-void subscription_parse(tSubscription* data, tCSVEntry entry) {
+void subscription_parse(tSubscription *data, tCSVEntry entry) {
     // Check input data
     assert(data != NULL);
 
@@ -44,7 +44,7 @@ void subscription_parse(tSubscription* data, tCSVEntry entry) {
 }
 
 // Copy the data from the source to destination (individual data)
-void subscription_cpy(tSubscription* destination, tSubscription source) {
+void subscription_cpy(tSubscription *destination, tSubscription source) {
     // Copy subscription's id data
     destination->id = source.id;
 
@@ -68,103 +68,96 @@ void subscription_cpy(tSubscription* destination, tSubscription source) {
 }
 
 // Get subscription data using a string
-void subscription_get(tSubscription data, char* buffer) {
+void subscription_get(tSubscription data, char *buffer) {
     // Print all data at same time
-    sprintf(buffer,"%d;%s;%02d/%02d/%04d;%02d/%02d/%04d;%s;%g;%d",
-        data.id,
-        data.document,
-        data.start_date.day, data.start_date.month, data.start_date.year,
-        data.end_date.day, data.end_date.month, data.end_date.year,
-        data.plan,
-        data.price,
-        data.numDevices);
+    sprintf(buffer, "%d;%s;%02d/%02d/%04d;%02d/%02d/%04d;%s;%g;%d",
+            data.id,
+            data.document,
+            data.start_date.day, data.start_date.month, data.start_date.year,
+            data.end_date.day, data.end_date.month, data.end_date.year,
+            data.plan,
+            data.price,
+            data.numDevices);
 }
 
 // Initialize subscriptions data
-tApiError subscriptions_init(tSubscriptions* data) {
+tApiError subscriptions_init(tSubscriptions *data) {
     // Check input data
     assert(data != NULL);
     data->elems = NULL;
-    data->count = 0; 
-	
-	return E_SUCCESS;
+    data->count = 0;
+
+    return E_SUCCESS;
 }
 
 // Return the number of subscriptions
 int subscriptions_len(tSubscriptions data) {
-	return data.count;
+    return data.count;
 }
 
-// Add a new subscription
-tApiError subscriptions_add(tSubscriptions* data, tPeople people, tSubscription subscription) {
-
+// 2a - Add a new subscription
+tApiError subscriptions_add(tSubscriptions *data, tPeople people, tSubscription subscription) {
     // Check input data
     assert(data != NULL);
 
-	// If subscription already exists, return an error
-	if (subscriptions_find(*data, subscription.id) >= 0)
-		return E_SUBSCRIPTION_DUPLICATED;
+    // If subscription already exists, return an error
+    if (subscriptions_find(*data, subscription.id) >= 0)
+        return E_SUBSCRIPTION_DUPLICATED;
 
-	// If the person does not exist, return an error
-	if (people_find(people, subscription.document) < 0)
-		return E_PERSON_NOT_FOUND;
+    // If the person does not exist, return an error
+    if (people_find(people, subscription.document) < 0)
+        return E_PERSON_NOT_FOUND;
 
     // Copy the data to the new position
-	if (data->elems == NULL) {
-		data->elems = (tSubscription*) malloc(sizeof(tSubscription));
-	} else {
-		data->elems = (tSubscription*) realloc(data->elems, (data->count + 1) * sizeof(tSubscription));
-	}
-	assert(data->elems != NULL);
-	subscription_cpy(&(data->elems[data->count]), subscription);
-    
+    if (data->elems == NULL) {
+        data->elems = (tSubscription *) malloc(sizeof(tSubscription));
+    } else {
+        data->elems = (tSubscription *) realloc(data->elems, (data->count + 1) * sizeof(tSubscription));
+    }
+    assert(data->elems != NULL);
+    subscription_cpy(&(data->elems[data->count]), subscription);
 
-    /////////////////////////////////
-    // PR2_2a
-    /////////////////////////////////
-    
-    
-    
-    /////////////////////////////////
-	// Increase the number of elements
-	data->count++;
-	
-	return E_SUCCESS;
+    // Initialize the movie tracking stack
+    filmstack_init(&data->elems[data->count].watchlist);
+
+    // Increase the number of elements
+    data->count++;
+
+    return E_SUCCESS;
 }
 
 // Remove a subscription
-tApiError subscriptions_del(tSubscriptions* data, int id) {
+tApiError subscriptions_del(tSubscriptions *data, int id) {
     int idx;
     int i;
-    
+
     // Check if an entry with this data already exists
     idx = subscriptions_find(*data, id);
-	
-	// If the subscription does not exist, return an error
-	if (idx < 0)
-		return E_SUBSCRIPTION_NOT_FOUND;
-    
-    // Shift elements to remove selected
-	for(i = idx; i < data->count-1; i++) {
-			// Copy element on position i+1 to position i
-			subscription_cpy(&(data->elems[i]), data->elems[i+1]);
-	}
-	// Update the number of elements
-	data->count--;  
 
-	if (data->count > 0) {
-		data->elems = (tSubscription*) realloc(data->elems, data->count * sizeof(tSubscription));
-		assert(data->elems != NULL);
-	} else {
-		subscriptions_free(data);
-	}
-	
-	return E_SUCCESS;
+    // If the subscription does not exist, return an error
+    if (idx < 0)
+        return E_SUBSCRIPTION_NOT_FOUND;
+
+    // Shift elements to remove selected
+    for (i = idx; i < data->count - 1; i++) {
+        // Copy element on position i+1 to position i
+        subscription_cpy(&(data->elems[i]), data->elems[i + 1]);
+    }
+    // Update the number of elements
+    data->count--;
+
+    if (data->count > 0) {
+        data->elems = (tSubscription *) realloc(data->elems, data->count * sizeof(tSubscription));
+        assert(data->elems != NULL);
+    } else {
+        subscriptions_free(data);
+    }
+
+    return E_SUCCESS;
 }
 
 // Get subscription data of position index using a string
-void subscriptions_get(tSubscriptions data, int index, char* buffer)
-{
+void subscriptions_get(tSubscriptions data, int index, char *buffer) {
     assert(index >= 0 && index < data.count);
     subscription_get(data.elems[index], buffer);
 }
@@ -192,19 +185,17 @@ void subscriptions_print(tSubscriptions data) {
     }
 }
 
-// Remove all elements 
-tApiError subscriptions_free(tSubscriptions* data) {    
+// 2b - Remove all elements
+tApiError subscriptions_free(tSubscriptions *data) {
     if (data->elems != NULL) {
-    /////////////////////////////////
-    // PR2_2b
-    /////////////////////////////////
-        
-        
-    /////////////////////////////////
+        for (int i = 0; i < data->count; i++) {
+            if (data->elems[i].watchlist.top != NULL) {
+                free(data->elems[i].watchlist.top);
+            }
+        }
         free(data->elems);
     }
     subscriptions_init(data);
-	
-	return E_SUCCESS;
-  
+
+    return E_SUCCESS;
 }

@@ -6,61 +6,86 @@
 #include "film.h"
 #include "watchstack.h"
 
-// Initializes the stack
-tApiError filmstack_init(tFilmstack* stack) {
-    /////////////////////////////////
-    // PR2_2c
-    /////////////////////////////////
+// 2c - Initializes the stack
+tApiError filmstack_init(tFilmstack *stack) {
+    assert(stack != NULL);
 
-   
-    return E_NOT_IMPLEMENTED;
+    stack->top = NULL;
+    stack->count = 0;
+
+    return E_SUCCESS;
 }
 
-// Returns true if the stack is empty
+// 2d - Returns true if the stack is empty
 bool filmstack_isEmpty(tFilmstack stack) {
-    /////////////////////////////////
-    // PR2_2d
-    /////////////////////////////////
-
-    return false;
+    return stack.top == NULL;
 }
 
 
-// Adds a new film to the stack, unless it already exists
-tApiError filmstack_push(tFilmstack* stack, tFilm film) {
-    /////////////////////////////////
-    // PR2_2e
-    /////////////////////////////////
+// 2e - Adds a new film to the stack, unless it already exists
+tApiError filmstack_push(tFilmstack *stack, tFilm film) {
+    assert(stack != NULL);
 
+    // Check film already exists
+    tFilmstackNode *current = stack->top;
+    while (current != NULL) {
+        if (strcmp(current->elem.name, film.name) == 0) {
+            return E_FILM_ALREADY_EXISTS;
+        }
+        current = current->next;
+    }
 
-    return E_NOT_IMPLEMENTED;
+    // Film NOT exists, create
+    tFilmstackNode *newFilmstackNode = malloc(sizeof(tFilmstackNode));
+    if (newFilmstackNode == NULL) {
+        return E_MEMORY_ERROR;
+    }
+    film_cpy(&(newFilmstackNode->elem), film);
+
+    // New node to top
+    newFilmstackNode->next = stack->top;
+    stack->top = newFilmstackNode;
+    stack->count++;
+
+    return E_SUCCESS;
 }
 
-// Returns the top film (without removing it)
-tFilm* filmstack_top(tFilmstack stack) {
-    /////////////////////////////////
-    // PR2_2f
-    /////////////////////////////////
-
-   
-    return NULL;
+// 2f - Returns the top film (without removing it)
+tFilm *filmstack_top(tFilmstack stack) {
+    return &stack.top->elem;
 }
 
-// Removes the top film from the stack
-tApiError filmstack_pop(tFilmstack* stack) {
-    /////////////////////////////////
-    // PR2_2g
-    /////////////////////////////////
+// 2g - Removes the top film from the stack
+tApiError filmstack_pop(tFilmstack *stack) {
+    assert(stack != NULL);
+    // Empty top
+    if (stack->top == NULL) {
+        return E_STRUCTURE_EMPTY;
+    }
 
+    tFilmstackNode *nodeToPop = stack->top;
+    stack->top = stack->top->next;
+    if (nodeToPop != NULL) {
+        free(nodeToPop);
+    }
+    stack->count--;
 
-    return E_NOT_IMPLEMENTED;
+    return E_SUCCESS;
 }
 
-// Frees the whole stack
-void filmstack_free(tFilmstack* stack) {
-    /////////////////////////////////
-    // PR2_2f
-    /////////////////////////////////
+// 2h - Frees the whole stack
+void filmstack_free(tFilmstack *stack) {
+    if (stack != NULL) {
+        // Free each node
+        tFilmstackNode *current = stack->top;
+        while (current != NULL) {
+            tFilmstackNode *nextNode = current->next;
+            free(current);
 
-    
+            current = nextNode;
+        }
+
+        stack->top = NULL;
+        stack->count = 0;
+    }
 }
