@@ -193,9 +193,7 @@ tApiError api_addShow(tApiData *data, tCSVEntry entry) {
     // Parse show
     show_parse(&show, entry);
 
-    showList_add(&data->shows, show);
-
-    return E_SUCCESS;
+    return showList_add(&data->shows, show);;
 }
 
 // 3c - Add a film to a subscription's watchlist from a CSV entry, avoiding duplicates
