@@ -25,8 +25,8 @@ typedef struct _ApiData {
    /////////////////////////////////
 	// PR2_3a
 	/////////////////////////////////
-    
-    /////////////////////////////////
+	// Catalog of shows
+	tShowCatalog shows;
 } tApiData;
 
 // Get the API version information

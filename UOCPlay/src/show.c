@@ -60,7 +60,7 @@ void show_parse(tShow *show, tCSVEntry entry) {
 
     // Add episode to season
     episodeQueue_enqueue(&season.episodes, episode);
-    episode_free(&episode);
+    //episode_free(&episode);
 
     // Initialize show
     show_init(show, showName);

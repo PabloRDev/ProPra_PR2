@@ -34,3 +34,8 @@ add_executable(UOC20242
 )
 
 target_link_libraries(UOC20242 UOCPlay)
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g")
+    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
+endif()
